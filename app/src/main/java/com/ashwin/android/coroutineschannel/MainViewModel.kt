@@ -1,5 +1,6 @@
 package com.ashwin.android.coroutineschannel
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,12 +19,25 @@ class MainViewModel : ViewModel() {
     private var liveDataCount = 1
 
     fun triggerEvent() = viewModelScope.launch {
-        eventChannel.send("Hello Channel $channelCount")
+        val event = "Hello Channel $channelCount"
         channelCount++
+        Log.d("coroutines-channel", "triggerEvent sending...: $event")
+        eventChannel.send(event)  // Until events are received, this new coroutine will not proceed.
+
+        // Reachable only after all the sent events are received/observed.
+        // Do not do anything here, since it is possible that no one is observing and this is unreachable.
+        Log.d("coroutines-channel", "triggerEvent sent: $event")
+        //channelCount++
     }
 
     fun triggerData() = viewModelScope.launch {
-        _liveData.postValue("Hello LiveData: $liveDataCount")
+        val data = "Hello LiveData: $liveDataCount"
+        Log.d("coroutines-channel", "triggerData sending...: $data")
+        //_liveData.postValue(data)
+        _liveData.value = data
+
+        // Reachable even if no oberver is observing
+        Log.d("coroutines-channel", "triggerData sent: $data")
         liveDataCount++
     }
 }

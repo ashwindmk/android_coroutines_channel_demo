@@ -21,28 +21,53 @@ class MainActivity : AppCompatActivity() {
 
         viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
 
-        lifecycleScope.launchWhenStarted {
-            viewModel.eventFlow.collect {
-                // Channel will not send/receive the last when restarted
-                Log.d("coroutines-channel", "event: $it")
-                Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG).show()
-            }
-        }
-
-        lifecycleScope.launchWhenStarted {
-            viewModel.liveData.observe(this@MainActivity, Observer {
-                // LiveData will send/receive the last value when restarted
-                Log.d("coroutines-channel", "data: $it")
-            })
-        }
-
         binding.testButton.setOnClickListener {
             test()
         }
+
+        binding.listenButton.setOnClickListener {
+            listen()
+        }
+
+        //listen()
     }
 
     private fun test() {
         viewModel.triggerEvent()
         viewModel.triggerData()
+    }
+
+    private fun listen() {
+        lifecycleScope.launchWhenStarted {
+            Log.d("coroutines-channel", "Add observer-1")
+            viewModel.eventFlow.collect {
+                // Channel will not send/receive the last when restarted
+                Log.d("coroutines-channel", "observer-1 event: $it")
+                Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG).show()
+            }
+
+            // Unreachable
+//            Log.d("coroutines-channel", "Add observer-2")
+//            viewModel.eventFlow.collect {
+//                // Channel will not send/receive the last when restarted
+//                Log.d("coroutines-channel", "observer-2 event: $it")
+//                Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG).show()
+//            }
+        }
+
+        lifecycleScope.launchWhenStarted {
+            Log.d("coroutines-channel", "Add observer-2")
+            viewModel.eventFlow.collect {
+                // Channel will not send/receive the last when restarted
+                Log.d("coroutines-channel", "2 event: $it")
+                Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG).show()
+            }
+        }
+
+        Log.d("coroutines-channel", "Add live-data observer")
+        viewModel.liveData.observe(this@MainActivity, Observer {
+            // LiveData will send/receive the last value when restarted
+            Log.d("coroutines-channel", "data: $it")
+        })
     }
 }
